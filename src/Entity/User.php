@@ -21,12 +21,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180, unique: true)]
     #[Assert\NotBlank(message: 'Veuillez renseigner un email.')]
     #[Assert\Email(message: 'Veuillez renseigner un email valide.')]
+    #[Assert\Length(max: 255, maxMessage: 'L\'email ne peut pas dépasser 255 caractères.')]
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
+    #[Assert\NotBlank(message: 'Le rôle de l\'utilisateur est requis.')]
     private array $roles = [];
 
     /**
@@ -34,7 +36,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     #[Assert\NotBlank(message: 'Veuillez renseigner un mot de passe.')]
-    #[Assert\Length(min: 3, minMessage: 'Le mot de passe doit contenir au moins 3 caractères.')]
+    #[Assert\Length(min: 6, minMessage: 'Le mot de passe doit contenir au moins 6 caractères.')]
+    #[Assert\Regex(
+        pattern: "/[A-Z]/",
+        message: "Le mot de passe doit contenir au moins une lettre majuscule."
+    )]
+    #[Assert\Regex(
+        pattern: "/[a-z]/",
+        message: "Le mot de passe doit contenir au moins une lettre minuscule."
+    )]
+    #[Assert\Regex(
+        pattern: "/[0-9]/",
+        message: "Le mot de passe doit contenir au moins un chiffre."
+    )]
     private ?string $password = null;
 
     public function getId(): ?int
@@ -108,7 +122,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function eraseCredentials(): void
     {
-        // If you store any temporary, sensitive data on the user, clear it here
+        // Si vous stockez des données temporaires sensibles sur l'utilisateur, effacez-les ici
         // $this->plainPassword = null;
     }
 
@@ -121,3 +135,4 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->getUserIdentifier();
     }
 }
+

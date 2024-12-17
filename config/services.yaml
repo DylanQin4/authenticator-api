@@ -27,3 +27,13 @@ services:
     App\EventListener\RequestValidationListener:
         tags:
             - { name: kernel.event_listener, event: kernel.request, priority: 10 }
+
+    services:
+    App\Service\PinService:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+            $pinRepository: '@App\Repository\PinRepository'
+    App\Service\EmailService:
+        arguments:
+            $mailer: '@mailer'
+
