@@ -22,6 +22,11 @@ class Token
     #[ORM\Column]
     private ?int $userId = null;
 
+    public function isExpired(): bool
+    {
+        return $this->expiratedAt < new \DateTimeImmutable();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
