@@ -6,10 +6,14 @@ RUN apt-get update && apt-get install -y \
 #    git \
 #    unzip \
 #    php-zip \
+    curl \
     libicu-dev \
     libpq-dev \
     libonig-dev \
-    && docker-php-ext-install intl pdo pdo_pgsql
+    zlib1g-dev \
+    libzip-dev \
+    curl \
+    && docker-php-ext-install intl pdo pdo_pgsql zip
 
 # Activer le module mod_rewrite d'Apache
 RUN a2enmod rewrite
@@ -19,6 +23,10 @@ WORKDIR /var/www/html
 
 # Copier les fichiers de l'application Symfony
 COPY . .
+
+# Configurer les permissions des fichiers
+RUN chown -R www-data:www-data /var/www/html
+RUN chmod -R 755 /var/www/html
 
 # Configurer Git pour accepter le répertoire de travail
 # RUN git config --global --add safe.directory /var/www/html

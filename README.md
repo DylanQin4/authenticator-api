@@ -1,6 +1,6 @@
-# Library API Symfony
+# Fournisseur d'authentification API Symfony
 
-Ce projet est une application API Symfony pour la gestion d'une bibliothèque. Il utilise Docker pour l'environnement de développement et PostgreSQL pour la base de données.
+Ce projet est une application de fournisseur d'authentification avec Symfony. Il utilise Docker pour l'environnement de développement et PostgreSQL pour la base de données.
 
 ## Prérequis
 
@@ -39,13 +39,19 @@ Ce projet est une application API Symfony pour la gestion d'une bibliothèque. I
     docker exec -it library_api_symfony bash -c "php bin/console doctrine:database:create"
     ```
    
-6. Exécutez les migrations :
+6. Generer le ficher de migration :
+
+    ```bash
+    docker exec -it library_api_symfony bash -c "php bin/console make:migration"
+    ```
+   
+7. Exécutez les migrations :
 
     ```bash
     docker exec -it library_api_symfony bash -c "php bin/console doctrine:migrations:migrate"
     ```
    
-7. Chargez les fixtures :
+8. Chargez les fixtures :
 
     ```bash
     docker exec -it library_api_symfony bash -c "php bin/console doctrine:fixtures:load"
@@ -53,4 +59,4 @@ Ce projet est une application API Symfony pour la gestion d'une bibliothèque. I
    repondez `yes` pour confirmer le chargement des fixtures.
 
 
-8. L'API est maintenant accessible à l'adresse `http://localhost:8080`.
+9. L'API est maintenant accessible à l'adresse `http://localhost:8080`.
