@@ -47,7 +47,6 @@ class RegistrationController extends AbstractController
         $user = new User();
         $user->setEmail($data['email']);
         $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
-        $user->setRoles(['ROLE_USER']);
 
         $validationErrors = $validator->validate($user);
         if (count($validationErrors) > 0) {
