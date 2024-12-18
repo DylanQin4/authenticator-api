@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Repository\TokenRepository;
+use App\Repository\PinRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -71,4 +73,63 @@ class RegistrationController extends AbstractController
             'message' => 'Inscription réussie'
         ], Response::HTTP_CREATED);
     }
+
+     
+    #[Route('/api/validate-email/{token}', name: 'api_validate_email', methods: ['GET'])]
+    public function validateEmail(
+        string $token,
+        TokenRepository $tokenRepository,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        $tokenEntity = $tokenRepository->isValidToken($token);
+    
+        if (!$tokenEntity) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Token invalide ou expiré.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+    
+        $user = $tokenEntity->getUser();
+        
+        $entityManager->remove($tokenEntity);
+        
+        $user->setEmailVerificationToken(null);
+        $entityManager->flush();
+    
+        return new JsonResponse([
+            'status' => 'success',
+            'message' => 'Votre email a été vérifié avec succès.'
+        ]);
+    }
+    
+
+    #[Route('/api/validate-pin/{pin}', name: 'api_validate_pin', methods: ['GET'])]
+    public function validatePin(
+        string $pin,
+        PinRepository $pinRepository,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        $pinEntity = $pinRepository->findOneBy(['codePin' => $pin]);
+    
+        if (!$pinEntity) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Code PIN invalide.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+    
+        if ($pinEntity->getExpiratedAt() < new \DateTimeImmutable()) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Code PIN expiré.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+    
+        return new JsonResponse([
+            'status' => 'success',
+            'message' => 'Code PIN validé avec succès.'
+        ]);
+    }
+    
 }
