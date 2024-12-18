@@ -26,7 +26,7 @@ class PinController
             'status' => 'success',
             'message' => 'Le code PIN a été généré avec succès.',
             'pin' => $pin->getCodePin(),
-            'expiration' => $pin->getExpiratedAt()->format('Y-m-d H:i:s')
+            'expiration' => $pin->getExpiredAt()->format('Y-m-d H:i:s')
         ], Response::HTTP_OK);
     }
 }

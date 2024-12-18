@@ -38,7 +38,7 @@ class PinService
 
         // Définir la date d'expiration
         $expirationDate = new DateTimeImmutable("+{$expirationDuration} seconds");
-        $pin->setExpiratedAt($expirationDate);
+        $pin->setExpiredAt($expirationDate);
 
         // Sauvegarder le PIN dans la base de données
         $this->entityManager->persist($pin);

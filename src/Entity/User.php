@@ -4,11 +4,12 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-class User
+class User implements PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -46,8 +47,11 @@ class User
     )]
     private ?string $password = null;
 
-    #[ORM\Column]
-    private ?int $nbConnectionAttempts = null;
+    #[ORM\Column(options: ['default' => 0])]
+    private ?int $loginAttempts = null;
+
+    #[ORM\Column(options: ['default' => false])]
+    private ?bool $isVerified = false;
 
     public function getId(): ?int
     {
@@ -102,14 +106,26 @@ class User
         return $this;
     }
 
-    public function getNbConnectionAttempts(): ?int
+    public function getLoginAttempts(): ?int
     {
-        return $this->nbConnectionAttempts;
+        return $this->loginAttempts;
     }
 
-    public function setNbConnectionAttempts(int $nbConnectionAttempts): static
+    public function setLoginAttempts(int $loginAttempts): static
     {
-        $this->nbConnectionAttempts = $nbConnectionAttempts;
+        $this->loginAttempts = $loginAttempts;
+
+        return $this;
+    }
+
+    public function isVerified(): ?bool
+    {
+        return $this->isVerified;
+    }
+
+    public function setVerified(bool $isVerified): static
+    {
+        $this->isVerified = $isVerified;
 
         return $this;
     }

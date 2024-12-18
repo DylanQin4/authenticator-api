@@ -17,14 +17,15 @@ class Token
     private ?string $token = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $expiratedAt = null;
+    private ?\DateTimeImmutable $expiredAt = null;
 
-    #[ORM\Column]
-    private ?int $userId = null;
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'token')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
 
     public function isExpired(): bool
     {
-        return $this->expiratedAt < new \DateTimeImmutable();
+        return $this->expiredAt < new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -44,26 +45,26 @@ class Token
         return $this;
     }
 
-    public function getExpiratedAt(): ?\DateTimeImmutable
+    public function getExpiredAt(): ?\DateTimeImmutable
     {
-        return $this->expiratedAt;
+        return $this->expiredAt;
     }
 
-    public function setExpiratedAt(\DateTimeImmutable $expiratedAt): static
+    public function setExpiredAt(\DateTimeImmutable $expiredAt): static
     {
-        $this->expiratedAt = $expiratedAt;
+        $this->expiredAt = $expiredAt;
 
         return $this;
     }
 
-    public function getUserId(): ?int
+    public function getUser(): ?User
     {
-        return $this->userId;
+        return $this->user;
     }
 
-    public function setUserId(int $userId): static
+    public function setUser(User $user): static
     {
-        $this->userId = $userId;
+        $this->user = $user;
 
         return $this;
     }
