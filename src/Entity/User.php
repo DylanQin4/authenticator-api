@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -18,12 +19,31 @@ class User
     private ?string $firstName = null;
 
     #[ORM\Column(length: 150)]
+    #[Assert\NotBlank(message: 'Veuillez entrer votre lastName')]
+    #[Assert\Length(min: 10, max: 250, maxMessage: 'LastName ne peut pas dépasser 250 caractères.')]
     private ?string $lastName = null;
 
-    #[ORM\Column(length: 180)]
+    #[ORM\Column(length: 180, unique: true)]
+    #[Assert\NotBlank(message: 'Veuillez renseigner un email.')]
+    #[Assert\Email(message: 'Veuillez renseigner un email valide.')]
+    #[Assert\Length(max: 255, maxMessage: 'L\'email ne peut pas dépasser 255 caractères.')]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Veuillez renseigner un mot de passe.')]
+    #[Assert\Length(min: 6, minMessage: 'Le mot de passe doit contenir au moins 6 caractères.')]
+    #[Assert\Regex(
+        pattern: "/[A-Z]/",
+        message: "Le mot de passe doit contenir au moins une lettre majuscule."
+    )]
+    #[Assert\Regex(
+        pattern: "/[a-z]/",
+        message: "Le mot de passe doit contenir au moins une lettre minuscule."
+    )]
+    #[Assert\Regex(
+        pattern: "/[0-9]/",
+        message: "Le mot de passe doit contenir au moins un chiffre."
+    )]
     private ?string $password = null;
 
     #[ORM\Column]
