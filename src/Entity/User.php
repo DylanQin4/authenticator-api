@@ -19,14 +19,14 @@ class User
     private ?string $firstName = null;
 
     #[ORM\Column(length: 150)]
-    #[Assert\NotBlank(message: 'Veuillez entrer votre lastName')]
-    #[Assert\Length(min: 10, max: 250, maxMessage: 'LastName ne peut pas dépasser 250 caractères.')]
+    #[Assert\NotBlank(message: 'Veuillez entrer votre Nom')]
+    #[Assert\Length(max: 250, maxMessage: 'Votre nom est invalide')]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 180, unique: true)]
     #[Assert\NotBlank(message: 'Veuillez renseigner un email.')]
     #[Assert\Email(message: 'Veuillez renseigner un email valide.')]
-    #[Assert\Length(max: 255, maxMessage: 'L\'email ne peut pas dépasser 255 caractères.')]
+    #[Assert\Length(max: 255, maxMessage: 'Votre email est invalide')]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
