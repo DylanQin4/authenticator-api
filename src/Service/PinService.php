@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Pin;
+use App\Entity\User;
 use App\Repository\PinRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -27,7 +28,7 @@ class PinService
      * @param int $expirationDuration Durée d'expiration en secondes (par défaut 90)
      * @return Pin Le PIN généré
      */
-    public function generatePin(int $expirationDuration = 90): Pin
+    public function generatePin(int $expirationDuration, User $user): Pin
     {
         // Générer un code PIN aléatoire
         $pinCode = $this->generateRandomPin();
@@ -35,6 +36,7 @@ class PinService
         // Créer l'entité Pin
         $pin = new Pin();
         $pin->setCodePin($pinCode);
+        $pin->setUser($user);
 
         // Définir la date d'expiration
         $expirationDate = new DateTimeImmutable("+{$expirationDuration} seconds");
@@ -47,6 +49,25 @@ class PinService
         return $pin;
     }
 
+    public function validatePin(string $pin): bool
+    {
+        $pinEntity = $this->pinRepository->findOneBy(['codePin' => $pin]);
+
+        if (!$pinEntity) {
+            return false;
+        }
+
+        $now = new DateTimeImmutable();
+        if ($now > $pinEntity->getExpiredAt()) {
+            return false;
+        }
+
+        $this->entityManager->remove($pinEntity);
+        $this->entityManager->flush();
+
+        return true;
+    }
+
     /**
      * Génère un code PIN aléatoire de 6 chiffres.
      *
@@ -55,5 +76,11 @@ class PinService
     private function generateRandomPin(): string
     {
         return str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT); // Génère un code PIN à 6 chiffres
+    }
+
+    function createPin(Pin $pin): void
+    {
+        $this->entityManager->persist($pin);
+        $this->entityManager->flush();
     }
 }

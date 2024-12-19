@@ -1,9 +1,8 @@
 -- Vider les tables
-TRUNCATE TABLE author, book, category, book_category, loan, "user" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE invalide_token, token, pin, "user" RESTART IDENTITY CASCADE;
 
 -- Réinitialiser les séquences
-ALTER SEQUENCE author_id_seq RESTART;
-ALTER SEQUENCE book_id_seq RESTART;
-ALTER SEQUENCE category_id_seq RESTART;
-ALTER SEQUENCE loan_id_seq RESTART;
+ALTER SEQUENCE invalide_token_id_seq RESTART;
+ALTER SEQUENCE pin_id_seq RESTART;
+ALTER SEQUENCE token_id_seq RESTART;
 ALTER SEQUENCE user_id_seq RESTART;
