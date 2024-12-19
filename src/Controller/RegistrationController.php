@@ -96,7 +96,8 @@ class RegistrationController extends AbstractController
         } catch (\Exception $e) {
             return new JsonResponse([
                 'status' => 'error',
-                'message' => 'Une erreur est survenue lors de l\'inscription.'
+                'message' => 'Une erreur est survenue lors de l\'inscription.',
+                'error' => $e->getMessage()
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
@@ -148,7 +149,7 @@ class RegistrationController extends AbstractController
         ]);
     }
 
-    #[Route('api/resend-validation-email', name: 'api_resend_validation', methods: ['POST'])]
+    #[Route('/api/resend-validation-email', name: 'api_resend_validation', methods: ['POST'])]
     public function resendValidationEmail(
         Request $request,
         UserRepository $userRepository,
@@ -201,27 +202,13 @@ class RegistrationController extends AbstractController
             }
         }
 
-        // Générer un nouveau token de validation
+        // Générer et sauvegarder un nouveau token de validation
         try {
-            $token = new Token();
-            $token->setUser($user);
-            $token->setToken($tokenService->generateValidationToken());
-            $token->setExpiredAt((new \DateTimeImmutable())->modify('+1 hour'));  // Expire dans 1 heure
+            $tokenService->createAndSaveToken($user, new \DateTimeImmutable('+1 hour'));
         } catch (\Exception $e) {
             return new JsonResponse([
                 'status' => 'error',
-                'message' => 'Une erreur est survenue lors de la génération du token.'
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-
-        try {
-            // Sauvegarder le token
-            $entityManager->persist($token);
-            $entityManager->flush();
-        } catch (ORMException $e) {
-            return new JsonResponse([
-                'status' => 'error',
-                'message' => 'Une erreur est survenue lors de la sauvegarde du token.'
+                'message' => 'Une erreur est survenue lors de la creation du token.'
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
@@ -239,34 +226,5 @@ class RegistrationController extends AbstractController
             'message' => 'Un email de validation vous a été envoyé.'
         ], Response::HTTP_OK);
     }
-    
 
-    #[Route('/api/validate-pin/{pin}', name: 'api_validate_pin', methods: ['GET'])]
-    public function validatePin(
-        string $pin,
-        PinRepository $pinRepository,
-        EntityManagerInterface $entityManager
-    ): JsonResponse {
-        $pinEntity = $pinRepository->findOneBy(['codePin' => $pin]);
-    
-        if (!$pinEntity) {
-            return new JsonResponse([
-                'status' => 'error',
-                'message' => 'Code PIN invalide.'
-            ], Response::HTTP_BAD_REQUEST);
-        }
-    
-        if ($pinEntity->getExpiredAt() < new \DateTimeImmutable()) {
-            return new JsonResponse([
-                'status' => 'error',
-                'message' => 'Code PIN expiré.'
-            ], Response::HTTP_BAD_REQUEST);
-        }
-    
-        return new JsonResponse([
-            'status' => 'success',
-            'message' => 'Code PIN validé avec succès.'
-        ]);
-    }
-    
 }
