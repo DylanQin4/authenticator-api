@@ -45,7 +45,7 @@ class EmailController extends AbstractController
                 <div class='content'>
                   <h1>Ito le email Test Misy css</h1>
                   <p>Mandefa html misy css sy sary </p>
-                  <img src='cid:image1' alt='Example Image' />
+                  <img src='cid:image1' />
                 </div>
                 <div class='footer'>
                   <p>Sent with ❤️ by smart</p>

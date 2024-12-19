@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Service;
 
 use Symfony\Component\Mailer\MailerInterface;
@@ -14,16 +13,16 @@ class EmailService
         $this->mailer = $mailer;
     }
 
-    public function sendEmail(string $to, string $subject, string $htmlContent, string $imagePath): void
+    public function sendEmail(string $to, string $subject, string $htmlContent, ?string $imagePath = null): void
     {
         $email = (new Email())
-            ->from('sitrakaitu@gmail.com') // Your Gmail address
+            ->from('sitrakaitu@gmail.com')
             ->to($to)
             ->subject($subject)
             ->html($htmlContent);
 
-        // Attach the image as inline
-        if (file_exists($imagePath)) {
+        // Attach the image as inline if the path is provided
+        if ($imagePath !== null && file_exists($imagePath)) {
             $email->embed(fopen($imagePath, 'r'), 'image1');
         }
 
