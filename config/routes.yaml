@@ -6,3 +6,13 @@ controllers:
 
 api_login_check:
     path: /api/login_check
+
+register_magic_link:
+    path: /auth/register
+    controller: App\Controller\MagicLinkController::register
+    methods: POST
+
+verify_magic_link:
+    path: /auth/verify
+    controller: App\Controller\MagicLinkController::verify
+    methods: GET
