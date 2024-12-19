@@ -8,14 +8,17 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
+use App\Service\TokenService;
 
 class EmailController extends AbstractController
 {
     private EmailService $emailService;
+    private TokenService $tokenService;
 
-    public function __construct(EmailService $emailService)
+    public function __construct(EmailService $emailService, TokenService $tokenService)
     {
         $this->emailService = $emailService;
+        $this->tokenService = $tokenService;
     }
 
     #[Route('/api/send-email', name: 'send_email', methods: ['POST'])]
@@ -61,5 +64,24 @@ class EmailController extends AbstractController
         } catch (\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+    #[Route('/api/send-email-token', name: 'send_token', methods: ['POST'])]
+    public function sendToken(Request $request): JsonResponse {
+      $data = json_decode($request->getContent(), true);
+      if (!isset($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+        return new JsonResponse(['error' => 'Invalid email address'], Response::HTTP_BAD_REQUEST);
+      }
+      $url= "/api/register";
+      $token= $this->tokenService->generateValidationToken();
+      $recipient = $data['email'];
+      $subject = "Confirmation Token";
+      $htmlContent = $this->emailService->generateHtmlValidationToken($url,$token);
+
+      try {
+        $this->emailService->sendEmail($recipient, $subject, $htmlContent);
+        return new JsonResponse(['message' => 'Email sent successfully'], Response::HTTP_OK);
+      } catch (\Exception $e) {
+          return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+      }
     }
 }
