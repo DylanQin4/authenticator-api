@@ -153,7 +153,7 @@ class RegistrationController extends AbstractController
         Request $request,
         UserRepository $userRepository,
         TokenRepository $tokenRepository,
-        EntityManager $entityManager,
+        EntityManagerInterface $entityManager,
         TokenService $tokenService
     ): JsonResponse
     {

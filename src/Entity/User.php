@@ -51,7 +51,7 @@ class User implements PasswordAuthenticatedUserInterface
     private ?int $loginAttempts = null;
 
     #[ORM\Column(options: ['default' => false])]
-    private ?bool $isVerified = false;
+    private ?bool $isVerified = null;
 
     public function getId(): ?int
     {
@@ -128,5 +128,10 @@ class User implements PasswordAuthenticatedUserInterface
         $this->isVerified = $isVerified;
 
         return $this;
+    }
+
+    public function isEmailVerified(): bool
+    {
+        return $this->isVerified;
     }
 }

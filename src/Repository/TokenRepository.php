@@ -29,10 +29,14 @@ class TokenRepository extends ServiceEntityRepository
             'now' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')
         ]);
 
-        $result = $resultSet->fetchAllAssociative();
+        $result = $resultSet->fetchAssociative();
 
-        return $result ? $this->getEntityManager()->getRepository(Token::class)->find($result['id']) : null;
+        if ($result) {
+            return $this->getEntityManager()->getRepository(Token::class)->find($result['id']);
+        }
+        return null;
     }
+
 
 //    /**
 //     * @return Token[] Returns an array of Token objects
