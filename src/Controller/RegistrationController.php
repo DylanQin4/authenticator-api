@@ -11,7 +11,9 @@ use App\Repository\TokenRepository;
 use App\Repository\PinRepository;
 use App\Service\TokenService;
 use Doctrine\DBAL\Exception;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Exception\ORMException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -144,6 +146,98 @@ class RegistrationController extends AbstractController
             'status' => 'success',
             'message' => 'Votre email a été vérifié avec succès.'
         ]);
+    }
+
+    #[Route('api/resend-validation-email', name: 'api_resend_validation', methods: ['POST'])]
+    public function resendValidationEmail(
+        Request $request,
+        UserRepository $userRepository,
+        TokenRepository $tokenRepository,
+        EntityManager $entityManager,
+        TokenService $tokenService
+    ): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        if (!isset($data['email'])) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Email manquant dans le corps de la requête.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $email = $data['email'];
+
+        // verifie si l'user existe
+        $user = $userRepository->findOneBy(['email' => $email]);
+
+        if (!$user) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Utilisateur non trouvé.'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        if ($user->isEmailVerified()) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Votre email est déjà validé.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        // verifier si un token de validation existe deja pour cet user
+        $existingToken = $tokenRepository->findOneBy(['user' => $user]);
+
+        if ($existingToken) {
+            // Si un token existe deja, le supprimer
+            try {
+                $entityManager->remove($existingToken);
+                $entityManager->flush();
+            } catch (ORMException $e) {
+                return new JsonResponse([
+                    'status' => 'error',
+                    'message' => 'Une erreur est survenue lors de la suppression du token existant.'
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+        }
+
+        // Générer un nouveau token de validation
+        try {
+            $token = new Token();
+            $token->setUser($user);
+            $token->setToken($tokenService->generateValidationToken());
+            $token->setExpiredAt((new \DateTimeImmutable())->modify('+1 hour'));  // Expire dans 1 heure
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Une erreur est survenue lors de la génération du token.'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        try {
+            // Sauvegarder le token
+            $entityManager->persist($token);
+            $entityManager->flush();
+        } catch (ORMException $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Une erreur est survenue lors de la sauvegarde du token.'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+//        $emailSent = $this->emailService->sendValidationEmail($user->getEmail(), $validationLink);
+
+//        if (!$emailSent) {
+//            return new JsonResponse([
+//                'status' => 'error',
+//                'message' => 'Une erreur est survenue lors de l\'envoi de l\'email de validation.'
+//            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+//        }
+
+        return new JsonResponse([
+            'status' => 'success',
+            'message' => 'Un email de validation vous a été envoyé.'
+        ], Response::HTTP_OK);
     }
     
 
