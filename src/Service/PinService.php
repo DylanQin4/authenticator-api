@@ -47,6 +47,25 @@ class PinService
         return $pin;
     }
 
+    public function validatePin(string $pin): bool
+    {
+        $pinEntity = $this->pinRepository->findOneBy(['codePin' => $pin]);
+
+        if (!$pinEntity) {
+            return false;
+        }
+
+        $now = new DateTimeImmutable();
+        if ($now > $pinEntity->getExpiredAt()) {
+            return false;
+        }
+
+        $this->entityManager->remove($pinEntity);
+        $this->entityManager->flush();
+
+        return true;
+    }
+
     /**
      * Génère un code PIN aléatoire de 6 chiffres.
      *
