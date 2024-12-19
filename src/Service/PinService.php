@@ -28,7 +28,7 @@ class PinService
      * @param int $expirationDuration Durée d'expiration en secondes (par défaut 90)
      * @return Pin Le PIN généré
      */
-    public function generatePin(int $expirationDuration, User $user): Pin
+    public function generatePin(string $expirationDuration, User $user): Pin
     {
         // Générer un code PIN aléatoire
         $pinCode = $this->generateRandomPin();
@@ -39,7 +39,7 @@ class PinService
         $pin->setUser($user);
 
         // Définir la date d'expiration
-        $expirationDate = new DateTimeImmutable("+{$expirationDuration} seconds");
+        $expirationDate = new DateTimeImmutable($expirationDuration);
         $pin->setExpiredAt($expirationDate);
 
         // Sauvegarder le PIN dans la base de données

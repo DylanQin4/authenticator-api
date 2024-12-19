@@ -53,6 +53,16 @@ class User implements PasswordAuthenticatedUserInterface
     #[ORM\Column(options: ['default' => false])]
     private ?bool $isVerified = false;
 
+    public function incrementsLoginAttempts(): void
+    {
+        $this->setLoginAttempts($this->getLoginAttempts() + 1);
+    }
+
+    public function resetLoginAttempts(): void
+    {
+        $this->setLoginAttempts(0);
+    }
+
     public function getId(): ?int
     {
         return $this->id;
