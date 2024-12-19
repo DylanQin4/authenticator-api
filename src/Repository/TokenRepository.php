@@ -23,7 +23,7 @@ class TokenRepository extends ServiceEntityRepository
     public function isValidToken(string $token): ?Token
     {
         $conn = $this->getEntityManager()->getConnection();
-        $sql = 'SELECT * FROM token_valide WHERE token = :token AND expirated_at > :now LIMIT 1';
+        $sql = 'SELECT * FROM token_valide WHERE token = :token AND token_valide.expired_at > :now LIMIT 1';
         $resultSet = $conn->executeQuery($sql, [
             'token' => $token,
             'now' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')

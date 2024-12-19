@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Token;
 use App\Repository\PinRepository;
+use App\Repository\TokenRepository;
 use App\Repository\UserRepository;
 use App\Service\PinService;
 use App\Service\TokenService;
@@ -152,6 +153,39 @@ class SecurityController extends AbstractController
             'access-token' => $accessToken,
             'message' => 'Code PIN validé avec succès.'
         ]);
+    }
+
+    #[Route('/api/logout', name: 'api_logout', methods: ['POST'])]
+    public function logout(
+        Request $request,
+        TokenService $tokenService,
+    ): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $token = $data['token'] ?? null;
+
+        if (empty($token)) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Token manquant.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $tokenEntity = $tokenService->getToken($token);
+            if (!$tokenEntity) throw new \Exception();
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Token invalide.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        $tokenService->createInvalideToken($tokenEntity->getId());
+
+        return new JsonResponse([
+            'status' => 'success',
+            'message' => 'Deconnexion reussie.'
+        ], Response::HTTP_OK);
     }
 
 }
