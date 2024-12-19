@@ -1,10 +1,12 @@
 <?php
 namespace App\Service;
 
+use App\Entity\InvalideToken;
 use App\Entity\Token;
 use App\Entity\User;
 use App\Repository\PinRepository;
 use App\Repository\TokenRepository;
+use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManagerInterface;
 use Random\RandomException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -57,5 +59,21 @@ class TokenService
         $entityManager->flush();
 
         return $this->createAndSaveToken($user, new \DateTimeImmutable('+1 hour'));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getToken(string $token): Token | null
+    {
+        return $this->tokenRepository->isValidToken($token);
+    }
+
+    public function createInvalideToken(string $tokenId): void
+    {
+        $invalideToken = new InvalideToken();
+        $invalideToken->setTokenId($tokenId);
+        $this->entityManager->persist($invalideToken);
+        $this->entityManager->flush();
     }
 }

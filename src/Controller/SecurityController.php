@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Token;
 use App\Repository\PinRepository;
+use App\Repository\TokenRepository;
 use App\Repository\UserRepository;
 use App\Service\PinService;
 use App\Service\TokenService;
@@ -25,6 +26,7 @@ class SecurityController extends AbstractController
         UserRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher,
         TokenService $tokenService,
+        PinService $pinService,
         EntityManagerInterface $entityManager
     ): JsonResponse
     {
@@ -59,6 +61,10 @@ class SecurityController extends AbstractController
                     'message' => 'Vous avez dépassé le nombre de tentatives de connexion autorisées. Un email de reinitialisation du tentative vous a été envoyé.',
                 ], Response::HTTP_UNAUTHORIZED);
             } else {
+                $user->incrementsLoginAttempts();
+                $entityManager->persist($user);
+                $entityManager->flush();
+
                 return new JsonResponse([
                     'status' => 'error',
                     'message' => 'Mot de passe incorrect.'
@@ -68,19 +74,19 @@ class SecurityController extends AbstractController
 
         $user->setLoginAttempts(0);
         try {
-            $accessToken = $tokenService->getAccessToken($user, $entityManager)->getToken();
+            $pin = $pinService->generatePin('+90 seconds', $user);
         } catch (\Exception $e) {
             return new JsonResponse([
                 'status' => 'error',
-                'message' => 'Une erreur est survenue lors de la creation du token d\'authentification.'
+                'message' => 'Une erreur est survenue lors de la creation du pin d\'authentification.'
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
         $entityManager->persist($user);
+        $entityManager->persist($pin);
         $entityManager->flush();
         return new JsonResponse([
             'status' => 'success',
-            'access-token' => $accessToken,
-            'message' => 'Authentication successful'
+            'message' => 'Un email de validation vous a été envoyé.'
         ], Response::HTTP_OK);
     }
 
@@ -101,6 +107,8 @@ class SecurityController extends AbstractController
         }
 
         if ($pinEntity->getExpiredAt() < new \DateTimeImmutable()) {
+            $entityManager->remove($pinEntity);
+            $entityManager->flush();
             return new JsonResponse([
                 'status' => 'error',
                 'message' => 'Code PIN expiré.'
@@ -131,10 +139,53 @@ class SecurityController extends AbstractController
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
+        try {
+            $accessToken = $tokenService->getAccessToken($user, $entityManager)->getToken();
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Une erreur est survenue lors de la creation du token d\'authentification.'
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
         return new JsonResponse([
             'status' => 'success',
+            'access-token' => $accessToken,
             'message' => 'Code PIN validé avec succès.'
         ]);
+    }
+
+    #[Route('/api/logout', name: 'api_logout', methods: ['POST'])]
+    public function logout(
+        Request $request,
+        TokenService $tokenService,
+    ): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $token = $data['token'] ?? null;
+
+        if (empty($token)) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Token manquant.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $tokenEntity = $tokenService->getToken($token);
+            if (!$tokenEntity) throw new \Exception();
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Token invalide.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        $tokenService->createInvalideToken($tokenEntity->getId());
+
+        return new JsonResponse([
+            'status' => 'success',
+            'message' => 'Deconnexion reussie.'
+        ], Response::HTTP_OK);
     }
 
 }
