@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 
-class UserContrller extends AbstractController {
+class UserController extends AbstractController {
 
 
     #[Route('/api/password/reset', name: 'password_reset', methods: ['POST'])]
