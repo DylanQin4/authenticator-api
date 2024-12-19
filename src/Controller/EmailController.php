@@ -71,7 +71,7 @@ class EmailController extends AbstractController
       if (!isset($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
         return new JsonResponse(['error' => 'Invalid email address'], Response::HTTP_BAD_REQUEST);
       }
-      $url= "/api/register";
+      $url= "/api/register/";
       $token= $this->tokenService->generateValidationToken();
       $recipient = $data['email'];
       $subject = "Confirmation Token";

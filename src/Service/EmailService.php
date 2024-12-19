@@ -29,181 +29,62 @@ class EmailService
         $this->mailer->send($email);
     }
     public function generateHtmlValidationToken(string $url,string $token):string {
-        $html=`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirm Registration</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(120deg, #6a11cb, #2575fc);
-            color: #fff;
-        }
-        .container {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            max-width: 400px;
-            width: 90%;
-        }
-        h1 {
-            font-size: 2em;
-            margin-bottom: 20px;
-        }
-        .confirm-button {
-            display: inline-block;
-            background-color: #28a745;
-            color: #fff;
-            padding: 10px 20px;
-            font-size: 1em;
-            text-transform: uppercase;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-        .confirm-button:hover {
-            background-color: #218838;
-        }
-        .confirm-button:active {
-            transform: scale(0.95);
-        }
-        .backup-link {
-            display: block;
-            margin-top: 20px;
-            font-size: 0.9em;
-            color: #ddd;
-        }
-        .backup-link a {
-            color: #f9d423;
-            text-decoration: none;
-        }
-        .backup-link a:hover {
-            text-decoration: underline;
-        }
-        .input-group {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 10px;
-        }
+        $safeUrl = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+    $safeToken = htmlspecialchars($token, ENT_QUOTES, 'UTF-8');
 
-        input[type="text"] {
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            flex: 1;
-            outline: none;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            color: #fff;
-            background-color: #007bff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        .message {
-            font-size: 14px;
-            color: #28a745;
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Kely sisa</h1>
-        <a href="http://{$url}{$token}" class="confirm-button">Manaiky ny Hiditra</a>
-        <p class="backup-link">Raha tsy mandeha, <a href="http://{$url}{$token}">dia ity hidirana azafady</a>.</p>
-        <p>Afaka mampiasa ity rohy ity mivantana koa:</p>
-        <div class="input-group">
-            <input type="text" id="copyInput" placeholder="" value="http://{$url}{$token}"">
-            <button id="copyButton">Handika</button>
-        </div>
-        <p id="message" class="message">Voadika ilay Izy!</p
-    </div>
-    <script>
-        const copyButton = document.getElementById('copyButton');
-        const copyInput = document.getElementById('copyInput');
-        const message = document.getElementById('message');
-
-        copyButton.addEventListener('click', () => {
-            // Select the input field's text
-            copyInput.select();
-            copyInput.setSelectionRange(0, 99999); // For mobile devices
-
-            // Copy the text
-            navigator.clipboard.writeText(copyInput.value).then(() => {
-                // Show success message
-                message.style.display = 'block';
-                setTimeout(() => {
-                    message.style.display = 'none';
-                }, 2000);
-            });
-        });
-    </script>
-</body>
-</html>`;
+    // Construct HTML
+    $html = '<!DOCTYPE html>';
+    $html .= '<html lang="en">';
+    $html .= '<head>';
+    $html .= '<meta charset="UTF-8">';
+    $html .= '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
+    $html .= '<title>Confirm Registration</title>';
+    $html .= '<style>';
+    $html .= 'body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(120deg, #6a11cb, #2575fc); color: #fff; }';
+    $html .= '.container { text-align: center; background: rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); max-width: 400px; width: 90%; }';
+    $html .= 'h1 { font-size: 2em; margin-bottom: 20px; }';
+    $html .= '.confirm-button { display: inline-block; background-color: #28a745; color: #fff; padding: 10px 20px; font-size: 1em; text-transform: uppercase; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); transition: background-color 0.3s ease, transform 0.2s ease; }';
+    $html .= '.confirm-button:hover { background-color: #218838; }';
+    $html .= '.confirm-button:active { transform: scale(0.95); }';
+    $html .= '.backup-link { display: block; margin-top: 20px; font-size: 0.9em; color: #ddd; }';
+    $html .= '.backup-link a { color: #f9d423; text-decoration: none; }';
+    $html .= '.backup-link a:hover { text-decoration: underline; }';
+    $html .= '.input-group { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }';
+    $html .= 'input[type="text"] { padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; flex: 1; outline: none; }';
+    $html .= 'button { padding: 10px 20px; font-size: 16px; color: #fff; background-color: #007bff; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.3s; }';
+    $html .= 'button:hover { background-color: #0056b3; }';
+    $html .= '.message { font-size: 14px; color: #28a745; display: none; }';
+    $html .= '</style>';
+    $html .= '</head>';
+    $html .= '<body>';
+    $html .= '<div class="container">';
+    $html .= '<h1>Kely sisa</h1>';
+    $html .= '<a href="http://127.0.0.1:8000' . $safeUrl . $safeToken . '" class="confirm-button">Manaiky ny Hiditra</a>';
+    $html .= '<p class="backup-link">Raha tsy mandeha, <a href="http://127.0.0.1:8000' . $safeUrl . $safeToken . '">dia ity hidirana azafady</a>.</p>';
+    $html .= '<p>Afaka mampiasa ity rohy ity mivantana koa: <a href="http://127.0.0.1:8000' . $safeUrl . $safeToken . '">http://127.0.0.1:8000' . $safeUrl . $safeToken . '</a></p>';
+    $html .= '</body>';
+    $html .= '</html>'; 
         return $html;
     }
     public function generateHtmlValidationPin(string $pin): string{
-        $html=`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PIN for Authentication</title>
-  <style>
-    h2 {
-      font-family: Arial, sans-serif;
-      font-size: 2em;
-      color: #4CAF50;
-      text-align: center;
-      background-color: #f0f0f0;
-      padding: 20px;
-      border-radius: 8px;
-      width: 50%;
-      margin: 50px auto;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    .pin {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 2em;
-      color: #FF5722;
-      background-color: #fff;
-      padding: 5px 16px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      letter-spacing: 3px; /* Add spacing between digits */
-    }
-  </style>
-</head>
-<body>
-  <h2>Authentication PIN: <span class="pin">{$pin}</span></h2>
-</body>
-</html>
-`;
+        $safePin = htmlspecialchars($pin, ENT_QUOTES, 'UTF-8');
+
+    // Construct HTML
+    $html = '<!DOCTYPE html>';
+    $html .= '<html lang="en">';
+    $html .= '<head>';
+    $html .= '<meta charset="UTF-8">';
+    $html .= '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
+    $html .= '<title>PIN for Authentication</title>';
+    $html .= '<style>';
+    $html .= 'h2 { font-family: Arial, sans-serif; font-size: 2em; color: #4CAF50; text-align: center; background-color: #f0f0f0; padding: 20px; border-radius: 8px; width: 50%; margin: 50px auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }';
+    $html .= '.pin { font-family: "Courier New", Courier, monospace; font-size: 2em; color: #FF5722; background-color: #fff; padding: 5px 16px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); letter-spacing: 3px; }';
+    $html .= '</style>';
+    $html .= '</head>';
+    $html .= '<body>';
+    $html .= '<h2>Authentication PIN: <span class="pin">' . $safePin . '</span></h2>';
+    $html .= '</body>';
+    $html .= '</html>';
         return $html;
     }
 }
