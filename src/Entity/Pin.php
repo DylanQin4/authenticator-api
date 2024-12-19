@@ -17,7 +17,7 @@ class Pin
     private ?string $codePin = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $expiratedAt = null;
+    private ?\DateTimeImmutable $expiredAt = null;
 
     #[ORM\Column]
     private ?int $userId = null;
@@ -39,14 +39,14 @@ class Pin
         return $this;
     }
 
-    public function getExpiratedAt(): ?\DateTimeImmutable
+    public function getExpiredAt(): ?\DateTimeImmutable
     {
-        return $this->expiratedAt;
+        return $this->expiredAt;
     }
 
-    public function setExpiratedAt(\DateTimeImmutable $expiratedAt): static
+    public function setExpiredAt(\DateTimeImmutable $expiredAt): static
     {
-        $this->expiratedAt = $expiratedAt;
+        $this->expiredAt = $expiredAt;
 
         return $this;
     }

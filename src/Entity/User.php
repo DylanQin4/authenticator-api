@@ -4,11 +4,12 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-class User
+class User implements PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -19,14 +20,14 @@ class User
     private ?string $firstName = null;
 
     #[ORM\Column(length: 150)]
-    #[Assert\NotBlank(message: 'Veuillez entrer votre lastName')]
-    #[Assert\Length(min: 10, max: 250, maxMessage: 'LastName ne peut pas dépasser 250 caractères.')]
+    #[Assert\NotBlank(message: 'Veuillez entrer votre Nom')]
+    #[Assert\Length(max: 250, maxMessage: 'Votre nom est invalide')]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 180, unique: true)]
     #[Assert\NotBlank(message: 'Veuillez renseigner un email.')]
     #[Assert\Email(message: 'Veuillez renseigner un email valide.')]
-    #[Assert\Length(max: 255, maxMessage: 'L\'email ne peut pas dépasser 255 caractères.')]
+    #[Assert\Length(max: 255, maxMessage: 'Votre email est invalide')]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
@@ -46,8 +47,11 @@ class User
     )]
     private ?string $password = null;
 
-    #[ORM\Column]
-    private ?int $nbConnectionAttempts = null;
+    #[ORM\Column(options: ['default' => 0])]
+    private ?int $loginAttempts = null;
+
+    #[ORM\Column(options: ['default' => false])]
+    private ?bool $isVerified = null;
 
     public function getId(): ?int
     {
@@ -102,15 +106,32 @@ class User
         return $this;
     }
 
-    public function getNbConnectionAttempts(): ?int
+    public function getLoginAttempts(): ?int
     {
-        return $this->nbConnectionAttempts;
+        return $this->loginAttempts;
     }
 
-    public function setNbConnectionAttempts(int $nbConnectionAttempts): static
+    public function setLoginAttempts(int $loginAttempts): static
     {
-        $this->nbConnectionAttempts = $nbConnectionAttempts;
+        $this->loginAttempts = $loginAttempts;
 
         return $this;
+    }
+
+    public function isVerified(): ?bool
+    {
+        return $this->isVerified;
+    }
+
+    public function setVerified(bool $isVerified): static
+    {
+        $this->isVerified = $isVerified;
+
+        return $this;
+    }
+
+    public function isEmailVerified(): bool
+    {
+        return $this->isVerified;
     }
 }
