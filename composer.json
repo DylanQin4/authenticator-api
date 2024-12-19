@@ -9,6 +9,7 @@
         "ext-iconv": "*",
         "firebase/php-jwt": "^6.10",
         "nelmio/api-doc-bundle": "^4.33",
+        "symfony/asset": "7.2.*",
         "symfony/console": "7.2.*",
         "symfony/dotenv": "7.2.*",
         "symfony/flex": "^2",
@@ -18,8 +19,11 @@
         "symfony/runtime": "7.2.*",
         "symfony/security-bundle": "7.2.*",
         "symfony/security-core": "7.2.*",
+        "symfony/twig-bundle": "7.2.*",
         "symfony/validator": "7.2.*",
-        "symfony/yaml": "7.2.*"
+        "symfony/yaml": "7.2.*",
+        "twig/extra-bundle": "^3.17",
+        "twig/twig": "^2.12|^3.0"
     },
     "require-dev": {
         "doctrine/dbal": "^3",
