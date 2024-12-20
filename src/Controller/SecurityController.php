@@ -6,6 +6,7 @@ use App\Entity\Token;
 use App\Repository\PinRepository;
 use App\Repository\TokenRepository;
 use App\Repository\UserRepository;
+use App\Service\EmailService;
 use App\Service\PinService;
 use App\Service\TokenService;
 use App\Service\UserService;
@@ -27,7 +28,8 @@ class SecurityController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         TokenService $tokenService,
         PinService $pinService,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        EmailService $emailService
     ): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -48,7 +50,12 @@ class SecurityController extends AbstractController
 
             if ($user->getLoginAttempts() >= 3) {
                 try {
-                    $tokenService->createAndSaveToken($user, new \DateTimeImmutable('+1 hour'));
+                    $token=$tokenService->createAndSaveToken($user, new \DateTimeImmutable('+1 hour'));
+                    $url= "/api/reset-attempts/";
+                    $recipient = $user->getEmail();
+                    $subject = "Token pour reinitialisation tentative";
+                    $htmlContent = $emailService->generateHtmlValidationToken($url,$token->getToken());
+                    $emailService->sendEmail($recipient, $subject, $htmlContent);
                 } catch (\Exception $e) {
                     return new JsonResponse([
                         'status' => 'error',
@@ -75,6 +82,8 @@ class SecurityController extends AbstractController
         $user->setLoginAttempts(0);
         try {
             $pin = $pinService->generatePin('+90 seconds', $user);
+            $recipient = $user->getEmail();
+            
         } catch (\Exception $e) {
             return new JsonResponse([
                 'status' => 'error',
@@ -84,10 +93,19 @@ class SecurityController extends AbstractController
         $entityManager->persist($user);
         $entityManager->persist($pin);
         $entityManager->flush();
-        return new JsonResponse([
-            'status' => 'success',
-            'message' => 'Un email de validation vous a été envoyé.'
-        ], Response::HTTP_OK);
+        $url= "/api/validate-pin/";
+        $subject = "Confirmation pin";
+        $htmlContent = $emailService->generateHtmlValidationPin($url,$pin->getCodePin());
+        try {
+            $emailService->sendEmail($recipient, $subject, $htmlContent);
+            return new JsonResponse([
+                'status' => 'success',
+                'message' => 'Un pin de validation vous a été envoyé.'
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+        
     }
 
     #[Route('/api/validate-pin/{pin}', name: 'api_validate_pin', methods: ['GET'])]
