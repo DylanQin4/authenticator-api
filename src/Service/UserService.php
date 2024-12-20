@@ -21,4 +21,8 @@ class UserService {
         $this->entityManager->persist($user);
         $this->entityManager->flush();
     }
+    public function updateUser(User $user) {
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+    }
 }

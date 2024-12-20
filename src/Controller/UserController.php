@@ -46,7 +46,7 @@ class UserController extends AbstractController {
             ], Response::HTTP_UNAUTHORIZED);
         }
         $user->setPassword($data['new_password']);
-        $userService->createUser($user);
+        $userService->updateUser($user);
         return new JsonResponse(['message' => 'Mot de passe réinitialisé avec succès.'], Response::HTTP_OK);
       } catch (\Exception $e)  {
         return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
