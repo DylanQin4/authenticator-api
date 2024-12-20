@@ -27,6 +27,15 @@ class UserRepository extends ServiceEntityRepository
 
         return $query->getOneOrNullResult();
     }
+    public function getUserByEmail(string $email): ?User
+    {
+        $query = $this->createQueryBuilder('u')
+            ->andWhere('u.email = :email')
+            ->setParameter('email', $email)
+            ->getQuery();
+
+        return $query->getOneOrNullResult();
+    }
 
 //    /**
 //     * @return User[] Returns an array of User objects
