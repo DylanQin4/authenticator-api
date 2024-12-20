@@ -1,14 +1,9 @@
 <?php
 
-// index.php
-use Symfony\Component\Dotenv\Dotenv;
+use App\Kernel;
 
-require dirname(__DIR__).'/vendor/autoload.php';
+require_once dirname(__DIR__).'/vendor/autoload_runtime.php';
 
-(new Dotenv())->loadEnv(dirname(__DIR__).'/.env');
-
-$kernel = new AppKernel($_SERVER['APP_ENV'], (bool) $_SERVER['APP_DEBUG']);
-$request = Symfony\Component\HttpFoundation\Request::createFromGlobals();
-$response = $kernel->handle($request);
-$response->send();
-$kernel->terminate($request, $response);
+return function (array $context) {
+    return new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
+};
