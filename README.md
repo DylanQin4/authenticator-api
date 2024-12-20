@@ -21,6 +21,10 @@ Ce projet est une application de fournisseur d'authentification avec Symfony. Il
     ```bash
     cp .env.example .env
     ```
+   et si vous êtes sur un système d'exploitation Windows vous pouvez utiliser la commande `copy` :
+    ```bash
+    copy .env.example .env
+    ```
 3. Construisez les conteneurs Docker :
 
     ```bash
@@ -30,33 +34,33 @@ Ce projet est une application de fournisseur d'authentification avec Symfony. Il
 4. Installez les dépendances PHP :
 
     ```bash
-    docker exec -it library_api_symfony bash -c "composer install"
+    docker exec -it library_api_symfony composer install
     ```
    
 5. Créez la base de données :
 
     ```bash
-    docker exec -it library_api_symfony bash -c "php bin/console doctrine:database:create"
+    docker exec -it library_api_symfony php bin/console doctrine:database:create
     ```
    
-6. Generer le ficher de migration :
+6. Générez les migrations :
 
     ```bash
-    docker exec -it library_api_symfony bash -c "php bin/console make:migration"
+    docker exec -it library_api_symfony php bin/console make:migration
     ```
    
 7. Exécutez les migrations :
 
     ```bash
-    docker exec -it library_api_symfony bash -c "php bin/console doctrine:migrations:migrate"
+    docker exec -it library_api_symfony php bin/console doctrine:migrations:migrate
     ```
    
 8. Chargez les fixtures :
 
     ```bash
-    docker exec -it library_api_symfony bash -c "php bin/console doctrine:fixtures:load"
+    docker exec -it library_api_symfony php bin/console doctrine:fixtures:load
     ```
    repondez `yes` pour confirmer le chargement des fixtures.
 
 
-9. L'API est maintenant accessible à l'adresse `http://localhost:8080`.
+9. L'API est maintenant accessible à l'adresse `http://localhost:8000`.
