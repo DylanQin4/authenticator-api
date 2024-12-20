@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Entity\Token;
+use App\Repository\TokenRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\EmailService;
 use App\Service\TokenService;
@@ -74,14 +76,25 @@ class UserController extends AbstractController {
     public function updateUser(
         Request $request,
         EntityManagerInterface $entityManager,
-        ValidatorInterface $validator
+        ValidatorInterface $validator,
+        TokenRepository $tokenRepository
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
-        if (!isset($data['token'])) {
-            return new JsonResponse(['error' => 'Token manquant.'], Response::HTTP_BAD_REQUEST);
+        $authorizationHeader = $request->headers->get('Authorization');
+
+        if (!$authorizationHeader) {
+            return new JsonResponse(['error' => 'Authorization manquant'], 400);
         }
 
-        $user = $this->getUser();
+        if (!str_starts_with($authorizationHeader, 'Bearer ')) {
+            return new JsonResponse(['error' => 'Invalid Authorization header format'], 400);
+        }
+        $token = trim(str_replace('Bearer ', '', $authorizationHeader));
+        $tkn =$tokenRepository->isValidToken($token);
+        if (!$tkn) {
+           return new JsonResponse(['error' => 'Token invalide ou expiré.'], Response::HTTP_UNAUTHORIZED);
+        }
+        $user = $tkn->getUser();
         if (!$user instanceof User) {
             return new JsonResponse(['error' => 'Utilisateur non authentifié.'], Response::HTTP_UNAUTHORIZED);
         }
