@@ -9,6 +9,7 @@ use App\Repository\InvalideTokenRepository;
 use App\Repository\UserRepository;
 use App\Repository\TokenRepository;
 use App\Repository\PinRepository;
+use App\Service\EmailService;
 use App\Service\TokenService;
 use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManager;
@@ -31,7 +32,8 @@ class RegistrationController extends AbstractController
         EntityManagerInterface $entityManager,
         ValidatorInterface $validator,
         UserRepository $userRepository,
-        TokenService $tokenService
+        TokenService $tokenService,
+        EmailService $emailService
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
@@ -92,6 +94,10 @@ class RegistrationController extends AbstractController
             $entityManager->persist($token);
             $entityManager->flush();
 
+            $url= "/api/validate-email/";
+            $recipient = $user->getEmail();
+            $subject = "Confirmation Token";
+            $htmlContent = $emailService->generateHtmlValidationToken($url,$token->getToken());
 //            $this->mailer->sendEmail($user->getEmail(), $tokenValue);
         } catch (\Exception $e) {
             return new JsonResponse([
@@ -100,7 +106,7 @@ class RegistrationController extends AbstractController
                 'error' => $e->getMessage()
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
+        $emailService->sendEmail($recipient, $subject, $htmlContent);
         return new JsonResponse([
             'status' => 'success',
             'message' => 'Un email de validation vous a été envoyé.'
@@ -155,7 +161,8 @@ class RegistrationController extends AbstractController
         UserRepository $userRepository,
         TokenRepository $tokenRepository,
         EntityManagerInterface $entityManager,
-        TokenService $tokenService
+        TokenService $tokenService,
+        EmailService $emailService
     ): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -204,7 +211,12 @@ class RegistrationController extends AbstractController
 
         // Générer et sauvegarder un nouveau token de validation
         try {
-            $tokenService->createAndSaveToken($user, new \DateTimeImmutable('+1 hour'));
+            $token=$tokenService->createAndSaveToken($user, new \DateTimeImmutable('+6 hours'));
+            $url= "/api/validate-email/";
+            $recipient = $user->getEmail();
+            $subject = "Confirmation Token";
+            $htmlContent = $emailService->generateHtmlValidationToken($url,$token->getToken());
+            $emailService->sendEmail($recipient, $subject, $htmlContent);
         } catch (\Exception $e) {
             return new JsonResponse([
                 'status' => 'error',
