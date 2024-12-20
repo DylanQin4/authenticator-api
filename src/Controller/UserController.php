@@ -19,18 +19,24 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class UserController extends AbstractController {
 
 
-    #[Route('/api/password/reset', name: 'password_reset', methods: ['POST'])]
-    public function reset(Request $request,TokenService $tokenService,UserService $userService): JsonResponse {
+    #[Route('/api/password/reset/{token}', name: 'password_reset', methods: ['POST'])]
+    public function reset(Request $request,TokenService $tokenService,UserService $userService,string $token): JsonResponse {
       $data = json_decode($request->getContent(), true);
-      if (!isset($data['token'])) {
+      if (!$token) {
         return new JsonResponse([
             'status' => 'error',
             'message' => 'Token manquant.'
         ], Response::HTTP_BAD_REQUEST);
       }
-      $token = $data['token'];
+      //$token = $data['token'];
       try {
         $tokenEnt= $tokenService->getToken($token);
+        if ($tokenEnt->isExpired()) {
+          return new JsonResponse([
+            'status' => 'error',
+            'message' => 'Token expiré.'
+        ], Response::HTTP_BAD_REQUEST);
+        }
         $user= $tokenEnt->getUser();
         $oldpass=$data['password'];
         if($user->getPassword()!=$oldpass){
