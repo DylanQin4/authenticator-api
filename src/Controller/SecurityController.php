@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\InvalideToken;
 use App\Entity\Token;
 use App\Repository\PinRepository;
 use App\Repository\TokenRepository;
@@ -9,6 +10,7 @@ use App\Repository\UserRepository;
 use App\Service\PinService;
 use App\Service\TokenService;
 use App\Service\UserService;
+use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManagerInterface;
 use Random\RandomException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -188,4 +190,43 @@ class SecurityController extends AbstractController
         ], Response::HTTP_OK);
     }
 
+    #[Route('/api/reset-attempts/{token}', name: 'api_validate_email', methods: ['GET'])]
+    public function validateEmail(
+        string $token,
+        TokenRepository $tokenRepository,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        try {
+            $tokenEntity = $tokenRepository->isValidToken($token);
+        } catch (Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Token invalide ou expiré.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (!$tokenEntity) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Token invalide ou expiré.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $user = $tokenEntity->getUser();
+
+        $user->setLoginAttempts(0);
+
+        $invalideToken = new InvalideToken();
+        $invalideToken->setTokenId($tokenEntity->getId());
+
+        $entityManager->persist($invalideToken);
+        $entityManager->persist($user);
+
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'status' => 'success',
+            'message' => 'Votre tentative de connexion a ete reinitialise.'
+        ]);
+    }
 }

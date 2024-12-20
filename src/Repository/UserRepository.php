@@ -16,6 +16,18 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
+    public function getUserFromToken(string $token): ?User
+    {
+//        user(email, password) et token(id, token, userid)
+        $query = $this->createQueryBuilder('u')
+            ->innerJoin('u.tokens', 't')
+            ->andWhere('t.token = :token')
+            ->setParameter('token', $token)
+            ->getQuery();
+
+        return $query->getOneOrNullResult();
+    }
+
 //    /**
 //     * @return User[] Returns an array of User objects
 //     */
