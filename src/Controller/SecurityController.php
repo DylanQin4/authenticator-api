@@ -97,7 +97,7 @@ class SecurityController extends AbstractController
         $entityManager->flush();
         $url= "/api/validate-pin/";
         $subject = "Confirmation pin";
-        $htmlContent = $emailService->generateHtmlValidationPin($url,$pin->getCodePin());
+        $htmlContent = $emailService->generateHtmlValidationPin($pin->getCodePin());
         try {
             $emailService->sendEmail($recipient, $subject, $htmlContent);
             return new JsonResponse([
