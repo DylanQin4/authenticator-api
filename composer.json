@@ -9,6 +9,7 @@
         "ext-iconv": "*",
         "firebase/php-jwt": "^6.10",
         "nelmio/api-doc-bundle": "^4.33",
+        "nelmio/cors-bundle": "^2.5",
         "symfony/asset": "7.2.*",
         "symfony/console": "7.2.*",
         "symfony/dotenv": "7.2.*",
