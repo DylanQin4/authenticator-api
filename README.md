@@ -34,31 +34,31 @@ Ce projet est une application de fournisseur d'authentification avec Symfony. Il
 4. Installez les dépendances PHP :
 
     ```bash
-    docker exec -it library_api_symfony composer install
+    docker exec -it authenticator_api_symfony composer install
     ```
    
 5. Créez la base de données :
 
     ```bash
-    docker exec -it library_api_symfony php bin/console doctrine:database:create
+    docker exec -it authenticator_api_symfony php bin/console doctrine:database:create
     ```
    
 6. Générez les migrations :
 
     ```bash
-    docker exec -it library_api_symfony php bin/console make:migration
+    docker exec -it authenticator_api_symfony php bin/console make:migration
     ```
    
 7. Exécutez les migrations :
 
     ```bash
-    docker exec -it library_api_symfony php bin/console doctrine:migrations:migrate
+    docker exec -it authenticator_api_symfony php bin/console doctrine:migrations:migrate
     ```
    
 8. Chargez les fixtures :
 
     ```bash
-    docker exec -it library_api_symfony php bin/console doctrine:fixtures:load
+    docker exec -it authenticator_api_symfony php bin/console doctrine:fixtures:load
     ```
    repondez `yes` pour confirmer le chargement des fixtures.
 

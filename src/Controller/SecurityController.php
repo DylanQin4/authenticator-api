@@ -83,7 +83,7 @@ class SecurityController extends AbstractController
 
         $user->setLoginAttempts(0);
         try {
-            $pin = $pinService->generatePin('+90 seconds', $user);
+            $pin = $pinService->generatePin('+230 seconds', $user);
             $recipient = $user->getEmail();
             
         } catch (\Exception $e) {
@@ -208,7 +208,7 @@ class SecurityController extends AbstractController
         ], Response::HTTP_OK);
     }
 
-    #[Route('/api/reset-attempts/{token}', name: 'api_validate_email', methods: ['GET'])]
+    #[Route('/api/reset-attempts/{token}', name: 'api_reset_attempts', methods: ['GET'])]
     public function validateEmail(
         string $token,
         TokenRepository $tokenRepository,
