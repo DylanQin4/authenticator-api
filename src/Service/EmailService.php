@@ -121,7 +121,7 @@ class EmailService
     $html .= '<h1>Mot de passe</h1>';
     $html .= '<a href="http://127.0.0.1:8000' . $safeUrl . $safeToken . '" class="confirm-button">mot de passe oublié</a>';
     $html .= '<p class="backup-link">Raha tsy mandeha, <a href="http://127.0.0.1:8000' . $safeUrl . $safeToken . '">dia ity hidirana azafady</a>.</p>';
-    $html .= '<p>Afaka mampiasa ity rohy ity mivantana koa: <a href="http://127.0.0.1:8000' . $safeUrl . $safeToken . '">http://127.0.0.1:8000' . $safeUrl . $safeToken . '</a></p>';
+    $html .= '<p>Afaka mampiasa ity rohy ity mivantana koa:<a href="http://127.0.0.1:8000' . $safeUrl . $safeToken . '">http://127.0.0.1:8000' . $safeUrl . $safeToken . '</a></p>';
     $html .= '</body>';
     $html .= '</html>'; 
         return $html;
