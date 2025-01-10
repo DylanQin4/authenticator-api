@@ -37,6 +37,12 @@ COPY 000-default.conf /etc/apache2/sites-enabled/000-default.conf
 # Installer Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
+RUN composer install
+RUN php bin/console doctrine:database:create
+RUN php bin/console make:migration
+RUN php bin/console doctrine:migrations:migrate
+RUN php bin/console doctrine:fixtures:load --no-interaction
+
 # Exposer le port 80
 EXPOSE 80
 
