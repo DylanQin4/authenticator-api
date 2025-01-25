@@ -11,10 +11,13 @@ use App\Repository\TokenRepository;
 use App\Repository\PinRepository;
 use App\Service\EmailService;
 use App\Service\TokenService;
+use App\Service\UserService;
 use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Exception\ORMException;
+use Kreait\Firebase\Exception\AuthException;
+use Kreait\Firebase\Exception\FirebaseException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,13 +28,16 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RegistrationController extends AbstractController
 {
+    /**
+     * @throws AuthException
+     * @throws FirebaseException
+     */
     #[Route('/api/register', name: 'api_register', methods: ['POST'])]
     public function register(
         Request $request,
         UserPasswordHasherInterface $passwordHasher,
-        EntityManagerInterface $entityManager,
         ValidatorInterface $validator,
-        UserRepository $userRepository,
+        UserService $userService,
         TokenService $tokenService,
         EmailService $emailService
     ): JsonResponse {
@@ -39,7 +45,7 @@ class RegistrationController extends AbstractController
 
         $errors = [];
 
-        if ($userRepository->findOneBy(['email' => $data['email']])) {
+        if ($userService->getUserByEmail($data['email'])) {
             $errors['email'] = 'Cet email est déjà utilisé.';
         }
 
@@ -90,15 +96,12 @@ class RegistrationController extends AbstractController
             $token->setExpiredAt((new \DateTimeImmutable())->modify('+1 hour'));
             $token->setUser($user);
 
-            $entityManager->persist($user);
-            $entityManager->persist($token);
-            $entityManager->flush();
+            $userService->createUser($user, $token);
 
             $url= "/api/validate-email/";
             $recipient = $user->getEmail();
             $subject = "Confirmation Token";
             $htmlContent = $emailService->generateHtmlValidationToken($url,$token->getToken());
-//            $this->mailer->sendEmail($user->getEmail(), $tokenValue);
         } catch (\Exception $e) {
             return new JsonResponse([
                 'status' => 'error',
@@ -118,7 +121,7 @@ class RegistrationController extends AbstractController
     public function validateEmail(
         string $token,
         TokenRepository $tokenRepository,
-        EntityManagerInterface $entityManager
+        UserService $userService
     ): JsonResponse {
         try {
             $tokenEntity = $tokenRepository->isValidToken($token);
@@ -137,18 +140,27 @@ class RegistrationController extends AbstractController
         }
     
         $user = $tokenEntity->getUser();
-        
         $user->setVerified(true);
 
         $invalideToken = new InvalideToken();
         $invalideToken->setTokenId($tokenEntity->getId());
 
-        $entityManager->persist($invalideToken);
-        $entityManager->persist($user);
-        
-//        $user->setEmailVerificationToken(null);
-        $entityManager->flush();
-    
+        try {
+            $userService->validateUser($user, $invalideToken);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Une erreur est survenue lors de la validation de votre email.',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        } catch (AuthException|FirebaseException $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Une erreur est survenue lors de la synchronisation de votre compte avec Firebase.',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
         return new JsonResponse([
             'status' => 'success',
             'message' => 'Votre email a été vérifié avec succès.'
