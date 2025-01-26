@@ -2,18 +2,13 @@
 FROM php:8.2-apache
 
 # Met à jour les paquets et installe les extensions PHP nécessaires
+# netcat est utilisé pour attendre la base de données
 RUN apt-get update && apt-get install -y \
-#    git \
-#    unzip \
-#    php-zip \
-    curl \
     libicu-dev \
     libpq-dev \
-    libonig-dev \
-    zlib1g-dev \
-    libzip-dev \
-    curl \
-    && docker-php-ext-install intl pdo pdo_pgsql zip
+    postgresql-client \
+    netcat-openbsd \
+    && docker-php-ext-install intl pdo pdo_pgsql
 
 # Activer le module mod_rewrite d'Apache
 RUN a2enmod rewrite
@@ -37,14 +32,16 @@ COPY 000-default.conf /etc/apache2/sites-enabled/000-default.conf
 # Installer Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-RUN composer install
-RUN php bin/console doctrine:database:create
-RUN php bin/console make:migration
-RUN php bin/console doctrine:migrations:migrate
-RUN php bin/console doctrine:fixtures:load --no-interaction
+# Copier le script d'initialisation Symfony
+COPY init-symfony.sh /usr/local/bin/init-symfony
+RUN chmod +x /usr/local/bin/init-symfony
+
+# Copier le script pour attendre la base de données
+COPY wait-for-database.sh /usr/local/bin/wait-for-database
+RUN chmod +x /usr/local/bin/wait-for-database
 
 # Exposer le port 80
 EXPOSE 80
 
-# Lancer le serveur Apache
-CMD ["apache2-foreground"]
+# Lancer le script d'initialisation et démarrer le serveur
+CMD ["init-symfony"]

@@ -1,6 +1,4 @@
-
 services:
-  ###> doctrine/doctrine-bundle ###
   database:
     container_name: authenticator_api_database
     image: postgres:${POSTGRES_VERSION:-16}
@@ -18,8 +16,6 @@ services:
       start_period: 30s
     volumes:
       - authenticator_api_data:/var/lib/postgresql/data:rw
-      # Vous pouvez décommenter cette ligne pour utiliser un répertoire local :
-      # - ./docker/db/data:/var/lib/postgresql/data:rw
 
   symfony:
     container_name: authenticator_api_symfony
@@ -33,6 +29,7 @@ services:
     depends_on:
       database:
         condition: service_healthy
+    command: ["wait-for-database", "database", "init-symfony", "apache2-foreground"]
 
 volumes:
   authenticator_api_data:

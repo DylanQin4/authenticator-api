@@ -11,3 +11,6 @@
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
+
+###> Firebase ###
+config/firebase_credentials.json
