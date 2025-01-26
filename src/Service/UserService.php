@@ -27,9 +27,11 @@ class UserService {
         return $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
     }
 
-    public function createUser(User $user, Token $token): void {
+    public function createUser(User $user, ?Token $token): void {
         $this->entityManager->persist($user);
-        $this->entityManager->persist($token);
+        if ($token) {
+            $this->entityManager->persist($token);
+        }
         $this->entityManager->flush();
     }
 
