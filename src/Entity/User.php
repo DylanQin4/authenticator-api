@@ -59,28 +59,12 @@ class User implements PasswordAuthenticatedUserInterface
     #[ORM\Column(options: ['default' => false])]
     private ?bool $isFacebook = false;
 
-    /**
-     * @param int|null $id
-     * @param string|null $firstName
-     * @param string|null $lastName
-     * @param string|null $email
-     * @param string|null $password
-     * @param int|null $loginAttempts
-     * @param bool|null $isVerified
-     * @param bool|null $isGoogle
-     * @param bool|null $isFacebook
-     */
-    public function __construct(?int $id, ?string $firstName, ?string $lastName, ?string $email, ?string $password, ?int $loginAttempts, ?bool $isVerified, ?bool $isGoogle, ?bool $isFacebook)
+    public function __construct()
     {
-        $this->id = $id;
-        $this->firstName = $firstName;
-        $this->lastName = $lastName;
-        $this->email = $email;
-        $this->password = $password;
-        $this->loginAttempts = $loginAttempts;
-        $this->isVerified = $isVerified;
-        $this->isGoogle = $isGoogle;
-        $this->isFacebook = $isFacebook;
+        $this->loginAttempts = 0;
+        $this->isVerified = false;
+        $this->isGoogle = false;
+        $this->isFacebook = false;
     }
 
 
