@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\InvalideToken;
 use App\Entity\Token;
 use App\Entity\User;
+use App\Service\FirebaseSyncService;
 use App\Repository\PinRepository;
 use App\Repository\TokenRepository;
 use Doctrine\DBAL\Exception;
@@ -15,9 +16,9 @@ use Random\RandomException;
 
 class UserService {
     private EntityManagerInterface $entityManager;
-    private FirebaseService $firebaseService;
+    private FirebaseSyncService $firebaseService;
 
-    public function __construct(EntityManagerInterface $entityManager, FirebaseService $firebaseService)
+    public function __construct(EntityManagerInterface $entityManager, FirebaseSyncService $firebaseService)
     {
         $this->entityManager = $entityManager;
         $this->firebaseService = $firebaseService;
@@ -62,6 +63,15 @@ class UserService {
             // Annulation de la transaction en cas d'erreur
             $this->entityManager->getConnection()->rollBack();
             throw $e;
+        }
+    }
+
+    public function verifyPasswordInFirebase(string $email, string $password): bool
+    {
+        try {
+            return $this->firebaseService->verifyPassword($email, $password);
+        } catch (\Exception $e) {
+            return false;
         }
     }
 }

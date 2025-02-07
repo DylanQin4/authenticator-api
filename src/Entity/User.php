@@ -59,12 +59,16 @@ class User implements PasswordAuthenticatedUserInterface
     #[ORM\Column(options: ['default' => false])]
     private ?bool $isFacebook = false;
 
+    #[ORM\Column(options: ['default' => false])]
+    private ?bool $isFirebase = false;
+
     public function __construct()
     {
         $this->loginAttempts = 0;
         $this->isVerified = false;
         $this->isGoogle = false;
         $this->isFacebook = false;
+        $this->isFirebase = false;
     }
 
 
@@ -180,6 +184,18 @@ class User implements PasswordAuthenticatedUserInterface
     public function setFacebook(bool $isFacebook): static
     {
         $this->isFacebook = $isFacebook;
+
+        return $this;
+    }
+    
+    public function isFirebase(): ?bool
+    {
+        return $this->isFirebase;
+    }
+
+    public function setFirebase(bool $isFirebase): static
+    {
+        $this->isFirebase = $isFirebase;
 
         return $this;
     }

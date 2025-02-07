@@ -27,3 +27,7 @@ services:
     App\EventListener\RequestValidationListener:
         tags:
             - { name: kernel.event_listener, event: kernel.request, priority: 10 }
+
+    App\Command\:
+        resource: '../src/Command'
+        tags: ['console.command']

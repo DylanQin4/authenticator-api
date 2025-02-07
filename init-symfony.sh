@@ -27,6 +27,10 @@ php bin/console doctrine:migrations:migrate --no-interaction
 echo "Chargement des fixtures..."
 php bin/console doctrine:fixtures:load --no-interaction
 
+#  Execution de la synchronisation des données Firebase
+echo "Synchronisation des données Firebase..."
+php bin/console app:firebase-sync
+
 ## Démarrer Apache
 echo "Lancement du serveur Apache..."
 exec apache2-foreground

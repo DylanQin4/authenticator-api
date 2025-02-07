@@ -21,6 +21,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
+use Kreait\Firebase\Contract\Auth;
+
 class SecurityController extends AbstractController
 {
     #[Route('/api/login_check', name: 'app_login_check', methods: ['POST'])]
@@ -31,32 +33,81 @@ class SecurityController extends AbstractController
         TokenService $tokenService,
         PinService $pinService,
         EntityManagerInterface $entityManager,
-        EmailService $emailService
+        EmailService $emailService,
+        Auth $firebaseAuth
     ): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         $email = $data['email'] ?? null;
         $password = $data['password'] ?? null;
-
+    
+        // Recherche de l'utilisateur localement dans la base de données
         $user = $userRepository->findOneBy(['email' => $email]);
+    
         if (!$user) {
             return new JsonResponse([
                 'status' => 'error',
                 'message' => 'Cet email n\'est associe a aucun compte.'
             ], Response::HTTP_UNAUTHORIZED);
         }
+    
+        // Si l'utilisateur est un utilisateur Firebase
+        if ($user->isFirebase()) {
+            try {
+                // Tente une authentification Firebase avec l'email et le mot de passe
+                $firebaseUser = $firebaseAuth->signInWithEmailAndPassword($email, $password);
+    
+                // Si l'authentification réussit, on peut passer directement à la génération du pin et l'envoi d'email
+                $user->setLoginAttempts(0);
+                try {
+                    $pin = $pinService->generatePin('+230 seconds', $user);
+                    $recipient = $user->getEmail();
+                    
+                } catch (\Exception $e) {
+                    return new JsonResponse([
+                        'status' => 'error',
+                        'message' => 'Une erreur est survenue lors de la creation du pin d\'authentification.'
+                    ], Response::HTTP_INTERNAL_SERVER_ERROR);
+                }
+                $entityManager->persist($user);
+                $entityManager->persist($pin);
+                $entityManager->flush();
+    
+                $url = "/api/validate-pin/";
+                $subject = "Confirmation pin";
+                $htmlContent = $emailService->generateHtmlValidationPin($pin->getCodePin());
+                try {
+                    $emailService->sendEmail($recipient, $subject, $htmlContent);
+                    return new JsonResponse([
+                        'status' => 'success',
+                        'message' => 'Un pin de validation vous a été envoyé.'
+                    ], Response::HTTP_OK);
+                } catch (\Exception $e) {
+                    return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+                }
+    
+            } catch (\Exception $e) {
+                // Si l'authentification Firebase échoue
+                return new JsonResponse([
+                    'status' => 'error',
+                    'message' => 'Authentification Firebase échouée : ' . $e->getMessage()
+                ], Response::HTTP_UNAUTHORIZED);
+            }
+        }
+    
+        // Si l'utilisateur est un utilisateur local (non Firebase), procéder à l'authentification classique
         if (!$passwordHasher->isPasswordValid($user, $password)) {
             $user->setLoginAttempts($user->getLoginAttempts() + 1);
             $entityManager->persist($user);
             $entityManager->flush();
-
+    
             if ($user->getLoginAttempts() >= 3) {
                 try {
-                    $token=$tokenService->createAndSaveToken($user, new \DateTimeImmutable('+1 hour'));
-                    $url= "/api/reset-attempts/";
+                    $token = $tokenService->createAndSaveToken($user, new \DateTimeImmutable('+1 hour'));
+                    $url = "/api/reset-attempts/";
                     $recipient = $user->getEmail();
                     $subject = "Token pour reinitialisation tentative";
-                    $htmlContent = $emailService->generateHtmlValidationToken($url,$token->getToken());
+                    $htmlContent = $emailService->generateHtmlValidationToken($url, $token->getToken());
                     $emailService->sendEmail($recipient, $subject, $htmlContent);
                 } catch (\Exception $e) {
                     return new JsonResponse([
@@ -64,23 +115,23 @@ class SecurityController extends AbstractController
                         'message' => 'Une erreur est survenue lors de la creation du token de validation.'
                     ], Response::HTTP_INTERNAL_SERVER_ERROR);
                 }
-//            url=api/reset-attempts{token}
+    
                 return new JsonResponse([
                     'status' => 'error',
                     'message' => 'Vous avez dépassé le nombre de tentatives de connexion autorisées. Un email de reinitialisation du tentative vous a été envoyé.',
                 ], Response::HTTP_UNAUTHORIZED);
             } else {
-                $user->incrementsLoginAttempts();
+                $user->setLoginAttempts($user->getLoginAttempts() + 1);
                 $entityManager->persist($user);
                 $entityManager->flush();
-
+    
                 return new JsonResponse([
                     'status' => 'error',
                     'message' => 'Mot de passe incorrect.'
                 ], Response::HTTP_UNAUTHORIZED);
             }
         }
-
+    
         $user->setLoginAttempts(0);
         try {
             $pin = $pinService->generatePin('+230 seconds', $user);
@@ -95,9 +146,11 @@ class SecurityController extends AbstractController
         $entityManager->persist($user);
         $entityManager->persist($pin);
         $entityManager->flush();
-        $url= "/api/validate-pin/";
+    
+        $url = "/api/validate-pin/";
         $subject = "Confirmation pin";
         $htmlContent = $emailService->generateHtmlValidationPin($pin->getCodePin());
+    
         try {
             $emailService->sendEmail($recipient, $subject, $htmlContent);
             return new JsonResponse([
@@ -107,8 +160,7 @@ class SecurityController extends AbstractController
         } catch (\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-        
-    }
+    }    
 
     #[Route('/api/validate-pin/{pin}', name: 'api_validate_pin', methods: ['GET'])]
     public function validatePin(
